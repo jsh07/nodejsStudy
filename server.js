@@ -2,6 +2,9 @@
 const express = require('express')
 const app = express()
 
+// static 파일을 html에서 쓰고 싶을 때 해당 파일들이 들어 있는 폴더(public) 등록
+app.use(express.static(__dirname + '/public'));
+
 // 서버 띄우는 코드
 // 8080: Port번호
 app.listen(8080, ()=>{
@@ -11,10 +14,4 @@ app.listen(8080, ()=>{
 // __dirname : 현재 프로젝트의 절대 경로 (server.js 담긴 폴더)
 app.get('/', (요청, 응답)=>{
     응답.sendFile(__dirname + '/index.html');
-});
-
-// 숙제
-// 누가 /about 으로 접속하면 내 소개용 html 페이지를 보내주자.
-app.get('/about', (요청, 응답)=>{
-    응답.sendFile(__dirname + '/about.html');
 });
