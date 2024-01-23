@@ -11,13 +11,17 @@
 
 <body class="grey-bg">
     <%- include('nav.ejs') %>
-    <div class="detail-bg">
-        <h4><%= post.title %></h4>
-        <p><%= post.content %></p>
-        
-        <a href="/edit/<%=post._id%>">✏️</a>
-    </div>
 
+    <form class="form-box" action="/edit/<%=post._id%>?_method=PUT" method="POST">
+        <input name="id" value="<%=post.id%>" style="display: none;">
+        <h4>글수정</h4>
+        <p>제목</p>
+        <input name="title" value="<%=post.title%>">
+        <p>내용</p>
+        <input name="content" value="<%=post.content%>">
+        <button class="btn btn-dark" type="submit">수정</button>
+        <div style="clear:both;"></div>
+    </form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 

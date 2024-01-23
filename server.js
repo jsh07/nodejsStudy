@@ -1,6 +1,12 @@
 // express 라이브러리 사용할 것임
 const express = require('express')
 const app = express()
+// DB 연결
+const { MongoClient, ObjectId } = require('mongodb');
+
+// method-override 사용
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'));
 
 // static 파일을 html에서 쓰고 싶을 때 해당 파일들이 들어 있는 폴더(public) 등록
 app.use(express.static(__dirname + '/public'));
@@ -8,8 +14,6 @@ app.use(express.static(__dirname + '/public'));
 // ejs 세팅
 app.set('view engine', 'ejs');
 
-// DB 연결
-const { MongoClient, ObjectId } = require('mongodb');
 
 // 유저가 데이터 보냈을 때 꺼내쓰기 쉽게 세팅
 app.use(express.json());
@@ -47,8 +51,6 @@ app.get('/write', (요청, 응답) => {
     응답.render('write.ejs');
 });
 app.post('/add', (요청, 응답) => {
-    
-    
     // try문 안에 코드 실행하고 에러나면 catch문 실행
     try {
         // 데이터 검사
@@ -80,9 +82,41 @@ app.post('/add', (요청, 응답) => {
 // 1. 유저가 /detail/어쩌구 접속하면
 // 2. {_id: 어쩌구} 글을 DB에서 찾ㅇ사ㅓ
 // 3. ejs 파일에 박아서 보내줌
-app.get('/detail/:postId', async (요청, 응답)=>{
-    // document 하나 가져옴
-    console.log(요청.params.postId);
-    let result = await db.collection('post').findOne({_id: new ObjectId(요청.params.postId)});
-    응답.render('detail.ejs', {post: result});
+// 파라미터 여러개 넣을 수 있음 /:param1/:param2 ...
+app.get('/detail/:id', async (요청, 응답)=>{
+    try {
+        // document 하나 가져옴
+        let result = await db.collection('post').findOne({_id: new ObjectId(요청.params.id)});
+        if (result == null){
+            응답.status(404).send('이상한 url');
+        }
+        
+        응답.render('detail.ejs', {post: result, id:요청.params.id});
+    } catch(e) {
+        응답.status(404).send('이상한 url');
+    }
+});
+
+// 수정 기능
+// 수정 버튼 누르면 수정 페이지로
+// 수정 페이지엔 기존 글 채워져 있음
+// 전송 누르면 확인 후 입력한 내용으로 DB 수정
+app.get('/edit/:id', async (요청, 응답) => {
+    let result = await db.collection('post').findOne({_id: new ObjectId(요청.params.id)});
+    응답.render('edit.ejs', {post: result});
+});
+
+
+app.put('/edit/:id', async (요청, 응답) =>{
+    try {
+        let result = await db.collection('post').updateOne({_id: new ObjectId(요청.params.id)}, {$set: {
+            title : 요청.body.title,
+            content: 요청.body.content
+        }});
+        console.log(result);
+        응답.redirect('/list');
+    } catch(e){
+        console.log(e);
+        응답.status(500).send('에러남');
+    }
 })
