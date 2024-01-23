@@ -9,7 +9,7 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'ejs');
 
 // DB 연결
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 
 // 유저가 데이터 보냈을 때 꺼내쓰기 쉽게 세팅
 app.use(express.json());
@@ -74,5 +74,15 @@ app.post('/add', (요청, 응답) => {
         // 에러 시 에러 코드 전송
         응답.status(500).send('서버에러남');
     }
-
 });
+
+// 상세페이지
+// 1. 유저가 /detail/어쩌구 접속하면
+// 2. {_id: 어쩌구} 글을 DB에서 찾ㅇ사ㅓ
+// 3. ejs 파일에 박아서 보내줌
+app.get('/detail/:postId', async (요청, 응답)=>{
+    // document 하나 가져옴
+    console.log(요청.params.postId);
+    let result = await db.collection('post').findOne({_id: new ObjectId(요청.params.postId)});
+    응답.render('detail.ejs', {post: result});
+})
