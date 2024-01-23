@@ -11,6 +11,10 @@ app.set('view engine', 'ejs');
 // DB 연결
 const { MongoClient } = require('mongodb');
 
+// 유저가 데이터 보냈을 때 꺼내쓰기 쉽게 세팅
+app.use(express.json());
+app.use(express.urlencoded({extended:true}))
+
 let db;
 const url = 'mongodb+srv://admin:qwer1234@lynx.fenevp1.mongodb.net/?retryWrites=true&w=majority';
 new MongoClient(url).connect().then((client) => {
@@ -37,4 +41,38 @@ app.get('/list', async (요청, 응답) => {
     // post 컬렉션의 모든 document 출력 - 외워
     let result = await db.collection('post').find().toArray();
     응답.render('list.ejs', {list: result});
+});
+
+app.get('/write', (요청, 응답) => {
+    응답.render('write.ejs');
+});
+app.post('/add', (요청, 응답) => {
+    
+    
+    // try문 안에 코드 실행하고 에러나면 catch문 실행
+    try {
+        // 데이터 검사
+        // - 제목, 내용이 빈칸이면?
+        // - 제목이 너무 길면?
+        // - 제목에 특수기호 쓰면?..
+        if (요청.body.title == '') {
+            응답.send('제목입력해');
+        } else {
+    
+            // insertOne 안의 데이터는 object로, db의 key 형식에 맞춰 넣어야 함
+            const result = db.collection('post').insertOne(
+             {
+                 title : 요청.body.title,
+                 content: 요청.body.content
+             });
+             응답.redirect('/list');
+        }
+        
+    } catch(e){
+        // 에러 원인
+        console.log(e)
+        // 에러 시 에러 코드 전송
+        응답.status(500).send('서버에러남');
+    }
+
 });

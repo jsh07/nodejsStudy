@@ -1,15 +1,18 @@
 body {
   margin: 0;
 }
+
 .nav {
   display: flex;
   padding: 15px;
   align-items: center;
-  background : white;
+  background: white;
 }
+
 .nav a {
   margin-right: 10px;
 }
+
 .logo {
   font-weight: bold;
 }
@@ -43,4 +46,31 @@ body {
 .write-btn {
   float: right;
   margin-right: 20px;
+}
+
+
+input,
+div {
+  box-sizing: border-box;
+}
+
+.form-box {
+  background: white;
+  padding: 25px;
+  margin: 20px;
+  border-radius: 8px;
+}
+
+.form-box input {
+  padding: 10px;
+  font-size: 16px;
+  width: 100%;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.form-box button {
+  display: block;
+  float: right;
 }
