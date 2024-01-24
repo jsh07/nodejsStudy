@@ -13,7 +13,6 @@
     <%- include('nav.ejs') %>
 
     <form class="form-box" action="/edit/<%=post._id%>?_method=PUT" method="POST">
-        <input name="id" value="<%=post.id%>" style="display: none;">
         <h4>글수정</h4>
         <p>제목</p>
         <input name="title" value="<%=post.title%>">

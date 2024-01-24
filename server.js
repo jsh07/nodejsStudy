@@ -119,4 +119,15 @@ app.put('/edit/:id', async (요청, 응답) =>{
         console.log(e);
         응답.status(500).send('에러남');
     }
-})
+});
+
+// 삭제 기능
+// 글 삭제 버튼 누르면 서버로 요청
+// 서버는 확인 후 해당 글 DB에서 삭제
+app.delete('/doc/:id', async (요청, 응답) => {
+    let result = await db.collection('post').deleteOne({_id: new ObjectId(요청.params.id)});
+    console.log(result);
+    // ajax 사용 시 응답.redirect, 응답.render 사용 안하는게 좋음
+    응답.send('삭제완료');
+});
+
