@@ -62,12 +62,7 @@ div {
 }
 
 .form-box input {
-  padding: 10px;
-  font-size: 16px;
   width: 100%;
-  border: 1px solid black;
-  border-radius: 5px;
-  margin-bottom: 10px;
 }
 
 .form-box button {
