@@ -131,3 +131,23 @@ app.delete('/doc/:id', async (요청, 응답) => {
     응답.send('삭제완료');
 });
 
+// 페이지네이션
+// 1번 버튼 누르면 1-5 보여줌 (/list/1 페이지)
+// 2번 버튼 누르면 6~10 보여줌 (/list/2 페이지)
+// 3번 버튼 누르면 11~15 보여줌 (/list/3 페이지)
+app.get('/list/:id', async (요청, 응답) => {
+    // skip 너무 많이 하면 성능 저하
+
+    let skip = (요청.params.id - 1) * 5;
+    let result = await db.collection('post').find().skip(skip).limit(5).toArray();
+    응답.render('list.ejs', {list: result});
+});
+app.get('/list/next/:id', async (요청, 응답) => {
+    // 조건식 이용하여 다음 게시물 가져오기
+    // 현재 보고 있는 페이지의 마지막 글 id보다 큰 것들을 위에서 5개 가져오는 코드
+    let result = await db.collection('post').find({_id : {$gt : new ObjectId(요청.params.id)}}).limit(5).toArray();
+    응답.render('list.ejs', {list: result});
+});
+
+// n 번째 글 보여주려면..?
+// id를 직접 1씩증가하는 정수로 만들기

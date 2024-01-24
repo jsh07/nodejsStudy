@@ -32,6 +32,24 @@
             <button type="button" class="btn btn-dark  write-btn">글작성</button>
         </a>
 
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+              <!-- <li class="page-item">
+                <a class="page-link" href="/list/prev/<%= list[0]._id %>" aria-label="Previous">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li> -->
+              <% for(let i=1; i<4; i++) {%>
+              <li class="page-item"><a class="page-link" href="/list/<%=i%>"><%= i %></a></li>
+              <% } %>
+              <li class="page-item">
+                <a class="page-link" href="/list/next/<%= list[list.length-1]._id %>" aria-label="Next">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
         <script>
             for (let i = 0; i < '<%=list.length%>'; i++) {
                 document.querySelectorAll('.delete')[i].addEventListener('click', function (e) {
