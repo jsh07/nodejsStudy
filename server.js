@@ -11,6 +11,9 @@ app.use(methodOverride('_method'));
 // bcrypt 세팅
 const bcrpyt = require('bcrypt');
 
+// 환경변수 세팅
+require('dotenv').config();
+
 // static 파일을 html에서 쓰고 싶을 때 해당 파일들이 들어 있는 폴더(public) 등록
 app.use(express.static(__dirname + '/public'));
 
@@ -35,25 +38,25 @@ app.use(session({
     resave: false, // 유저가 서버로 요청할 때마다 세션 갱신할건지
     saveUninitialized: false, // 로그인 안 해도 세션을 만들 것인지
     cookie: { maxAge: 60 * 60 * 1000 }, // 세션 유지 시간 (단위 ms)
-    store : MongoStore.create({
-        mongoUrl : 'mongodb+srv://admin:qwer1234@lynx.fenevp1.mongodb.net/?retryWrites=true&w=majority',
+    store: MongoStore.create({
+        mongoUrl: process.env.DB_URL,
         dbName: 'forum'
     })
-}))
+}));
 
-app.use(passport.session())
+app.use(passport.session());
 
 
 let db;
-const url = 'mongodb+srv://admin:qwer1234@lynx.fenevp1.mongodb.net/?retryWrites=true&w=majority';
+const url = process.env.DB_URL;
 new MongoClient(url).connect().then((client) => {
     console.log('DB연결성공');
     db = client.db('forum');
 
     // 서버 띄우는 코드
     // 8080: Port번호
-    app.listen(8080, () => {
-        console.log('http://localhost:8080 에서 서버 실행중');
+    app.listen(process.env.PORT, () => {
+        console.log('http://localhost:'+process.env.PORT+' 에서 서버 실행중');
     });
 
 }).catch((err) => {
@@ -233,7 +236,7 @@ passport.serializeUser((user, done) => {
 // 그래도 요청이 많아서 DB 부담스러우면 redis 사용 고려..
 passport.deserializeUser(async (user, done) => {
     // 세션 document에 적힌 유저 정보를 갱신해서 담아줌
-    let result = await db.collection('user').findOne({_id: new ObjectId(user.id)});
+    let result = await db.collection('user').findOne({ _id: new ObjectId(user.id) });
 
     // 비번은 삭제
     delete result.password;
@@ -276,22 +279,20 @@ app.get('/mypage', (요청, 응답) => {
 // 회원가입
 app.get('/register', (요청, 응답) => {
     응답.render('register.ejs');
-})
+});
 
 app.post('/register', async (요청, 응답) => {
-
     // 아이디 중복 체크
-    let isDuplicate = await db.collection('user').findOne({username: 요청.body.username});
+    let isDuplicate = await db.collection('user').findOne({ username: 요청.body.username });
 
-    console.log(isDuplicate);
-    if (isDuplicate == null){
+    if (isDuplicate == null) {
         // 비번은 hashing을 이용 : 어떤 문자를 랜덤한 문자로 변환
         // bcrpyt 알고리즘 사용할 것임
         // 비번 hashing 
         // 문자 뒤에 랜덤 문자(salt)를 붙여서 그걸 해싱
         // - lookup table attack / rainbow table attack 해킹 방어 가능
         // 두번째 파라미터는 얼마나 꼬을지의 정도..
-        
+
         let hashedPassword = await bcrpyt.hash(요청.body.password, 10);
         let result = await db.collection('user').insertOne({
             username: 요청.body.username,
@@ -299,7 +300,7 @@ app.post('/register', async (요청, 응답) => {
         });
         응답.redirect('/login');
     }
-    
+
 });
 
 // 글쓰기
@@ -313,3 +314,34 @@ app.get('/write', (요청, 응답) => {
         응답.render('write.ejs');
     }
 });
+
+// 환경변수 : 개발자나 컴퓨터에 따라 달라져야 하는 변수
+// 별도 파일에 보관해야 함
+// - DB URL, 비밀번호, PORT 번호, 쿠키 유지 시간 등
+// npm install dotenv
+// .env 파일에 보관, 깃헙에 올리면 안됨
+
+
+// API에 자주 출현하는 코드..
+// 로그인했는지?
+// middleware 사용
+// 요청이 오면 먼저 실행됨
+// - 함수를 따로 안 만들고 직접 넣어도 됨
+// - []로 여러 개 넣기 가능
+// - 너무 많으면 app.use() 사용
+// app.get('/url', middleware, (요청, 응답) => {
+    // 1. middleware 실행
+    // 2. 내부 코드 실행
+// });
+
+// 여기 밑에 있는 모든 API는 이 middleware 적용됨
+app.use(middleware);
+
+// /URL 지정하면 /URL로 시작하는 모든 곳에 적용
+// app.use('/URL', middleware);
+
+function middleware(요청, 응답, next) {
+    // middleware 함수에선 요청, 응답 자유롭게 사용 가능
+    // but 응답해버리면 남은 코드 실행 안 됨 
+    next() // middleware 코드 끝나서 다음으로 이동하라는 뜻. 안 쓰면 무한대기
+}
