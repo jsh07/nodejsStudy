@@ -75,3 +75,14 @@ div {
   padding: 15px;
   margin-top: 10px;
 }
+
+.search { 
+  width: 200px;
+  margin-right: 10px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: flex-end;
+  margin: 20px;
+}

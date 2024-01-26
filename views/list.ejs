@@ -12,6 +12,11 @@
 
 <body class="grey-bg">
     <%- include('nav.ejs') %>
+        <div class="search-container">
+            <input class="form-control search" type="text" placeholder="search">
+            <button type="button" class="btn btn-primary search-btn">검색</button>
+        </div>
+
         <div class="white-bg">
 
             <% for (let i=0; i<list.length; i++){ %>
@@ -34,23 +39,66 @@
 
         <nav aria-label="Page navigation example">
             <ul class="pagination">
-              <!-- <li class="page-item">
+                <!-- <li class="page-item">
                 <a class="page-link" href="/list/prev/<%= list[0]._id %>" aria-label="Previous">
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li> -->
-              <% for(let i=1; i<4; i++) {%>
-              <li class="page-item"><a class="page-link" href="/list/<%=i%>"><%= i %></a></li>
-              <% } %>
-              <li class="page-item">
-                <a class="page-link" href="/list/next/<%= list[list.length-1]._id %>" aria-label="Next">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
+                <% for(let i=1; i<4; i++) {%>
+                    <li class="page-item"><a class="page-link" href="/list/<%=i%>">
+                            <%= i %>
+                        </a></li>
+                    <% } %>
+                        <li class="page-item">
+                            <a class="page-link" href="/list/next/<%= list[list.length-1]._id %>" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
             </ul>
-          </nav>
+        </nav>
 
         <script>
+
+            let searchInput = document.querySelector('.search');
+            let searchBtn = document.querySelector('.search-btn');
+            let listDiv = document.querySelector('.white-bg');
+            let searchWord;
+            
+            searchInput.addEventListener('input', (e) => {
+                searchWord = e.target.value;
+            });
+            
+            
+            searchBtn.addEventListener('click', function (e) {
+                
+                axios.get('/search?searchWord=' + searchWord)
+                .then((response) => {
+                        let resultHtml = '';
+                        response.data.forEach(element => {
+                            resultHtml += `
+                            <div class="list-box">
+                                <a href="/detail/${element._id}">
+                                    <h4>
+                                        ${element.title}
+                                            <span class="delete" data-id="${element._id}">🗑️</span>
+                                    </h4>
+                                </a>
+                                <p>
+                                    ${element.content}
+                                </p>
+                            </div>
+                            `;
+                        });
+                        
+                        listDiv.innerHTML = resultHtml;
+
+                    })
+                    .catch((err) => {
+                        console.log('error');
+                    });
+            });
+
+
             for (let i = 0; i < '<%=list.length%>'; i++) {
                 document.querySelectorAll('.delete')[i].addEventListener('click', function (e) {
 
