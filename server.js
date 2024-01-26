@@ -46,6 +46,28 @@ app.use(session({
 
 app.use(passport.session());
 
+// AWS-S3 세팅
+const { S3Client } = require('@aws-sdk/client-s3');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+const s3 = new S3Client({
+  region : 'ap-northeast-2',
+  credentials : {
+      accessKeyId : process.env.ACCESS_KEY,
+      secretAccessKey : process.env.SECRET_ACCESS_KEY
+  }
+});
+
+const upload = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: 'suheeforum1',
+    key: function (요청, file, cb) {
+      cb(null, Date.now().toString()) //업로드시 파일명 변경가능 (겹치면 안 됨)
+    }
+  })
+});
+
 
 let db;
 const url = process.env.DB_URL;
@@ -77,31 +99,39 @@ app.get('/list', async (요청, 응답) => {
 
 
 app.post('/add', (요청, 응답) => {
-    // try문 안에 코드 실행하고 에러나면 catch문 실행
-    try {
-        // 데이터 검사
-        // - 제목, 내용이 빈칸이면?
-        // - 제목이 너무 길면?
-        // - 제목에 특수기호 쓰면?..
-        if (요청.body.title == '') {
-            응답.send('제목입력해');
-        } else {
 
-            // insertOne 안의 데이터는 object로, db의 key 형식에 맞춰 넣어야 함
-            const result = db.collection('post').insertOne(
-                {
-                    title: 요청.body.title,
-                    content: 요청.body.content
-                });
-            응답.redirect('/list');
+    upload.single('img1')(요청, 응답, async (err) => {
+        // 이미지 업로드시 에러 처리
+        if (err) return 응답.send('업로드 에러');
+        // 업로드 완료 시 실행할 코드
+
+        // try문 안에 코드 실행하고 에러나면 catch문 실행
+        try {
+            // 데이터 검사
+            // - 제목, 내용이 빈칸이면?
+            // - 제목이 너무 길면?
+            // - 제목에 특수기호 쓰면?..
+            if (요청.body.title == '') {
+                응답.send('제목입력해');
+            } else {
+    
+                // insertOne 안의 데이터는 object로, db의 key 형식에 맞춰 넣어야 함
+                const result = await db.collection('post').insertOne(
+                    {
+                        title: 요청.body.title,
+                        content: 요청.body.content,
+                        img: 요청.file.location
+                    });
+                응답.redirect('/list');
+            }
+    
+        } catch (e) {
+            // 에러 원인
+            console.log(e)
+            // 에러 시 에러 코드 전송
+            응답.status(500).send('서버에러남');
         }
-
-    } catch (e) {
-        // 에러 원인
-        console.log(e)
-        // 에러 시 에러 코드 전송
-        응답.status(500).send('서버에러남');
-    }
+    })
 });
 
 // 상세페이지
@@ -305,9 +335,7 @@ app.post('/register', async (요청, 응답) => {
 
 // 글쓰기
 app.get('/write', (요청, 응답) => {
-
     // 로그인 한 사람만 글 작성 가능하게
-    console.log(요청.user);
     if (요청.user == undefined) {
         응답.render('login.ejs');
     } else {
@@ -345,3 +373,18 @@ app.use(middleware);
 
 // /URL 지정하면 /URL로 시작하는 모든 곳에 적용
 // app.use('/URL', middleware);
+
+
+
+// 이미지 저장 : 파일 저장용 클라우드 서비스 이용
+// - AWS S3
+//   - 계정 생성하고 권한 세팅 필요
+
+// 1. 글 작성 페이지에 이미지 <input>
+// 2. 서버는 이미지 받으면 S3에 업로드
+//  - multer / formidable 라이브러리 쓰면 편함
+//      - multer: 유저가 보낸 파일을 다루기 쉽게 도와줌
+//      - multer-s3: S3 업로드를 쉽게 해줌
+//      - @aws-sdk/client-s3 : AWS 사용 시 필요
+// 3. 이미지 URL은 DB에 글과 함께 저장
+// 4. 이미지 필요하면 DB에 있던 URL 꺼내서 html에 넣기
