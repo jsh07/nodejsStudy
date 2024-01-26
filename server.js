@@ -325,23 +325,23 @@ app.get('/write', (요청, 응답) => {
 // API에 자주 출현하는 코드..
 // 로그인했는지?
 // middleware 사용
+function middleware(요청, 응답, next) {
+    // middleware 함수에선 요청, 응답 자유롭게 사용 가능
+    // but 응답해버리면 남은 코드 실행 안 됨 
+    next() // middleware 코드 끝나서 다음으로 이동하라는 뜻. 안 쓰면 무한대기
+}
+
 // 요청이 오면 먼저 실행됨
 // - 함수를 따로 안 만들고 직접 넣어도 됨
 // - []로 여러 개 넣기 가능
 // - 너무 많으면 app.use() 사용
-// app.get('/url', middleware, (요청, 응답) => {
+app.get('/url', middleware, (요청, 응답) => {
     // 1. middleware 실행
     // 2. 내부 코드 실행
-// });
+});
 
 // 여기 밑에 있는 모든 API는 이 middleware 적용됨
 app.use(middleware);
 
 // /URL 지정하면 /URL로 시작하는 모든 곳에 적용
 // app.use('/URL', middleware);
-
-function middleware(요청, 응답, next) {
-    // middleware 함수에선 요청, 응답 자유롭게 사용 가능
-    // but 응답해버리면 남은 코드 실행 안 됨 
-    next() // middleware 코드 끝나서 다음으로 이동하라는 뜻. 안 쓰면 무한대기
-}
